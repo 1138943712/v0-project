@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronLeft, ChevronRight, MapPin, Users, Clock } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { mockCalendarCourses } from "@/lib/mock-data"
 import type { Screen } from "@/lib/navigation"
 
@@ -11,156 +11,206 @@ interface CourseCalendarProps {
 }
 
 const DAYS = ["日", "一", "二", "三", "四", "五", "六"]
-const MONTHS = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
 
-const statusConfig: Record<number, { text: string; className: string }> = {
-  1: { text: "进行中", className: "bg-primary text-primary-foreground" },
-  2: { text: "即将开始", className: "bg-amber-500 text-white" },
-  0: { text: "待开始", className: "bg-secondary text-secondary-foreground" },
-  3: { text: "已结束", className: "bg-muted text-muted-foreground" },
-}
-
-function getWeekDates(centerDate: Date) {
-  const dow = centerDate.getDay()
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(centerDate)
-    d.setDate(centerDate.getDate() - dow + i)
-    return d
-  })
-}
-
-function toISODate(d: Date) {
+function toISO(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+}
+
+function getDaysInMonth(year: number, month: number) {
+  return new Date(year, month + 1, 0).getDate()
+}
+
+function getFirstDayOfMonth(year: number, month: number) {
+  return new Date(year, month, 1).getDay()
+}
+
+const statusStyle: Record<number, { timeColor: string; statusLabel: string; statusClass: string }> = {
+  1: { timeColor: "text-accent",          statusLabel: "进行中", statusClass: "text-accent" },
+  2: { timeColor: "text-primary",         statusLabel: "即将开始", statusClass: "text-primary" },
+  0: { timeColor: "text-muted-foreground", statusLabel: "待开课", statusClass: "text-muted-foreground" },
+  3: { timeColor: "text-muted-foreground", statusLabel: "已完成", statusClass: "text-muted-foreground" },
 }
 
 export function CourseCalendar({ onNavigate }: CourseCalendarProps) {
   const today = new Date(2025, 2, 12)
+  const [viewYear, setViewYear] = useState(today.getFullYear())
+  const [viewMonth, setViewMonth] = useState(today.getMonth())
   const [selectedDate, setSelectedDate] = useState(today)
-  const [weekBase, setWeekBase] = useState(today)
 
-  const weekDates = getWeekDates(weekBase)
-  const selectedDateStr = toISODate(selectedDate)
-  const todayStr = toISODate(today)
-  const dayCourses = mockCalendarCourses.find((d) => d.date === selectedDateStr)?.courses ?? []
+  const todayStr = toISO(today)
+  const selectedStr = toISO(selectedDate)
+
+  const firstDay = getFirstDayOfMonth(viewYear, viewMonth)
+  const daysInMonth = getDaysInMonth(viewYear, viewMonth)
+  const prevMonthDays = getDaysInMonth(viewYear, viewMonth - 1)
+
+  // Build 6-row grid
+  const cells: { day: number; curMonth: boolean; dateStr: string }[] = []
+  for (let i = 0; i < firstDay; i++) {
+    const d = prevMonthDays - firstDay + 1 + i
+    const date = new Date(viewYear, viewMonth - 1, d)
+    cells.push({ day: d, curMonth: false, dateStr: toISO(date) })
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(viewYear, viewMonth, d)
+    cells.push({ day: d, curMonth: true, dateStr: toISO(date) })
+  }
+  while (cells.length % 7 !== 0) {
+    const d = cells.length - firstDay - daysInMonth + 1
+    const date = new Date(viewYear, viewMonth + 1, d)
+    cells.push({ day: d, curMonth: false, dateStr: toISO(date) })
+  }
+
+  const hasCourse = (dateStr: string) =>
+    mockCalendarCourses.some((c) => c.date === dateStr)
+
+  const dayCourses = mockCalendarCourses.find((c) => c.date === selectedStr)?.courses ?? []
+
+  const prevMonth = () => {
+    if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11) }
+    else setViewMonth(m => m - 1)
+  }
+  const nextMonth = () => {
+    if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0) }
+    else setViewMonth(m => m + 1)
+  }
 
   return (
     <div className="flex flex-col h-full">
-      {/* Week header */}
-      <div className="px-4 pt-4 pb-2 bg-background">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-semibold text-foreground">
-            {weekBase.getFullYear()}年 {MONTHS[weekBase.getMonth()]}
-          </h2>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => { const d = new Date(weekBase); d.setDate(d.getDate() - 7); setWeekBase(d) }}
-              className="p-1.5 rounded-lg hover:bg-secondary transition-colors"
-            >
-              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
-            </button>
-            <button
-              onClick={() => { const d = new Date(weekBase); d.setDate(d.getDate() + 7); setWeekBase(d) }}
-              className="p-1.5 rounded-lg hover:bg-secondary transition-colors"
-            >
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </button>
-          </div>
+      {/* Calendar card */}
+      <div className="mx-4 mt-4 bg-card rounded-2xl shadow-sm overflow-hidden">
+        {/* Month nav */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+          <button onClick={prevMonth} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-secondary">
+            <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+          </button>
+          <span className="text-base font-bold text-foreground">
+            {viewYear}年{viewMonth + 1}月
+          </span>
+          <button onClick={nextMonth} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-secondary">
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </button>
         </div>
 
-        <div className="grid grid-cols-7 gap-1">
-          {weekDates.map((d, i) => {
-            const dateStr = toISODate(d)
-            const isToday = dateStr === todayStr
-            const isSelected = dateStr === selectedDateStr
-            const hasCourse = mockCalendarCourses.some((c) => c.date === dateStr)
+        {/* Day headers */}
+        <div className="grid grid-cols-7 px-2 pb-1">
+          {DAYS.map((d) => (
+            <div key={d} className="text-center text-xs text-muted-foreground py-1">{d}</div>
+          ))}
+        </div>
+
+        {/* Date cells */}
+        <div className="grid grid-cols-7 px-2 pb-4">
+          {cells.map((cell, i) => {
+            const isToday = cell.dateStr === todayStr
+            const isSelected = cell.dateStr === selectedStr
+            const hasDot = hasCourse(cell.dateStr)
             return (
               <button
                 key={i}
-                onClick={() => setSelectedDate(d)}
-                className="flex flex-col items-center gap-0.5 py-2"
+                onClick={() => {
+                  setSelectedDate(new Date(cell.dateStr + "T00:00:00"))
+                  if (!cell.curMonth) {
+                    const d = new Date(cell.dateStr + "T00:00:00")
+                    setViewYear(d.getFullYear())
+                    setViewMonth(d.getMonth())
+                  }
+                }}
+                className="flex flex-col items-center py-1"
               >
-                <span className="text-xs text-muted-foreground">{DAYS[d.getDay()]}</span>
-                <span className={`h-8 w-8 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
-                  isSelected ? "bg-primary text-primary-foreground"
-                    : isToday ? "bg-primary/10 text-primary"
-                    : "text-foreground hover:bg-secondary"
+                <span className={`h-8 w-8 flex items-center justify-center rounded-full text-sm transition-colors ${
+                  isSelected
+                    ? "bg-primary text-primary-foreground font-bold"
+                    : isToday
+                    ? "border-2 border-primary text-primary font-bold"
+                    : cell.curMonth
+                    ? "text-foreground hover:bg-secondary"
+                    : "text-muted-foreground/40"
                 }`}>
-                  {d.getDate()}
+                  {isToday && !isSelected ? "今" : cell.day}
                 </span>
-                <span className={`h-1.5 w-1.5 rounded-full ${hasCourse ? (isSelected ? "bg-primary-foreground" : "bg-primary") : "bg-transparent"}`} />
+                <span className={`h-1.5 w-1.5 rounded-full mt-0.5 ${hasDot && cell.curMonth ? (isSelected ? "bg-primary-foreground" : "bg-accent") : "bg-transparent"}`} />
               </button>
             )
           })}
         </div>
       </div>
 
-      {/* Date label */}
-      <div className="px-4 pt-3 pb-2 border-t border-border">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-foreground">
-            {selectedDate.getMonth() + 1}月{selectedDate.getDate()}日
-            {selectedDateStr === todayStr && <span className="text-primary ml-1">（今天）</span>}
-          </h3>
-          <span className="text-xs text-muted-foreground">{dayCourses.length} 节课</span>
+      {/* Day course list */}
+      <div className="flex-1 overflow-y-auto px-4 mt-4 pb-24">
+        {/* Section header */}
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <span className="text-sm font-bold text-foreground">
+              {selectedDate.getMonth() + 1}月{selectedDate.getDate()}日
+            </span>
+            {selectedStr === todayStr && (
+              <span className="ml-1.5 text-xs text-accent font-medium">今天</span>
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground">共 {dayCourses.length} 节课</span>
         </div>
-      </div>
 
-      {/* Course list */}
-      <div className="flex-1 overflow-y-auto px-4 space-y-3 pb-24">
-        {dayCourses.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-sm">今日暂无课程安排</p>
+        {dayCourses.length === 0 ? (
+          <div className="bg-card rounded-2xl shadow-sm flex flex-col items-center justify-center py-12">
+            <span className="text-3xl mb-2">📅</span>
+            <p className="text-sm text-muted-foreground">暂无课程安排</p>
+          </div>
+        ) : (
+          <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
+            {dayCourses.map((course, index) => {
+              const st = statusStyle[course.status] ?? statusStyle[0]
+              return (
+                <button
+                  key={course.id}
+                  onClick={() => onNavigate({ type: "session-detail", sessionId: course.id })}
+                  className={`w-full flex items-center gap-3 px-4 py-4 hover:bg-secondary/50 transition-colors text-left ${
+                    index < dayCourses.length - 1 ? "border-b border-border" : ""
+                  }`}
+                >
+                  {/* Time */}
+                  <div className="w-12 shrink-0">
+                    <p className={`text-sm font-bold leading-none ${st.timeColor}`}>
+                      {course.time.split("-")[0]}
+                    </p>
+                    <p className={`text-[10px] mt-1 ${st.statusClass}`}>{st.statusLabel}</p>
+                  </div>
+
+                  {/* Dot */}
+                  <div className="flex flex-col items-center self-stretch py-1 shrink-0">
+                    <span className={`h-2.5 w-2.5 rounded-full ${course.status === 1 ? "bg-accent" : course.status === 2 ? "bg-primary" : "bg-border"}`} />
+                    {index < dayCourses.length - 1 && <span className="w-px flex-1 bg-border mt-1" />}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground">{course.courseName}</p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Avatar className="h-5 w-5">
+                        <AvatarFallback className="text-[9px] bg-primary/10 text-primary">教</AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs text-muted-foreground">{course.location} · {course.students}人</span>
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex flex-col gap-1.5 shrink-0">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onNavigate({ type: "attendance", sessionId: course.id }) }}
+                      className={`text-[11px] px-2.5 py-1 rounded-full font-medium transition-colors ${
+                        course.status === 3
+                          ? "bg-secondary text-muted-foreground"
+                          : "bg-primary text-primary-foreground hover:bg-primary/90"
+                      }`}
+                    >
+                      {course.status === 3 ? "已结束" : "签到"}
+                    </button>
+                  </div>
+                </button>
+              )
+            })}
           </div>
         )}
-        {dayCourses.map((course) => {
-          const statusCfg = statusConfig[course.status] ?? statusConfig[0]
-          return (
-            <div
-              key={course.id}
-              onClick={() => onNavigate({ type: "session-detail", sessionId: course.id })}
-              className="rounded-xl bg-card border border-border p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <h4 className="font-medium text-foreground">{course.courseName}</h4>
-                <Badge className={`shrink-0 ml-2 ${statusCfg.className}`}>{statusCfg.text}</Badge>
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5 shrink-0" />
-                  <span>{course.time}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5 shrink-0" />
-                  <span>{course.location}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Users className="h-3.5 w-3.5 shrink-0" />
-                  <span>{course.students} 人参加</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
-                <button
-                  onClick={(e) => { e.stopPropagation(); onNavigate({ type: "attendance", sessionId: course.id }) }}
-                  className="flex-1 text-center text-xs text-primary border border-primary/30 rounded-lg py-1.5 hover:bg-primary/5 transition-colors"
-                >
-                  签到管理
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onNavigate({ type: "teaching-feedback", courseId: course.courseId }) }}
-                  className="flex-1 text-center text-xs text-primary border border-primary/30 rounded-lg py-1.5 hover:bg-primary/5 transition-colors"
-                >
-                  教学反馈
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onNavigate({ type: "course-detail", courseId: course.courseId }) }}
-                  className="flex-1 text-center text-xs text-muted-foreground border border-border rounded-lg py-1.5 hover:bg-secondary transition-colors"
-                >
-                  课程详情
-                </button>
-              </div>
-            </div>
-          )
-        })}
       </div>
     </div>
   )

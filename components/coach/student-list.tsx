@@ -1,9 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Search, ChevronRight, Phone, MessageCircle } from "lucide-react"
+import { Search, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { mockStudents } from "@/lib/mock-data"
 import type { Screen } from "@/lib/navigation"
@@ -12,13 +11,13 @@ interface StudentListProps {
   onNavigate: (screen: Screen) => void
 }
 
-const statusConfig: Record<string, { className: string }> = {
-  "活跃":    { className: "bg-primary/10 text-primary" },
-  "课时不足": { className: "bg-amber-500/10 text-amber-600" },
-  "已结课":  { className: "bg-muted text-muted-foreground" },
-}
-
 const filters = ["全部", "活跃", "课时不足", "已结课"]
+
+const statusDot: Record<string, string> = {
+  "活跃":    "bg-green-500",
+  "课时不足": "bg-amber-500",
+  "已结课":  "bg-gray-400",
+}
 
 export function StudentList({ onNavigate }: StudentListProps) {
   const [activeFilter, setActiveFilter] = useState("全部")
@@ -32,86 +31,81 @@ export function StudentList({ onNavigate }: StudentListProps) {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Search */}
       <div className="px-4 pt-4 pb-3 space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="搜索学员姓名或课程"
-            className="pl-10 bg-secondary border-border"
+            className="pl-9 bg-card border-0 shadow-sm rounded-xl h-10"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {filters.map((filter) => (
-            <Badge
-              key={filter}
-              variant={activeFilter === filter ? "default" : "secondary"}
-              className="cursor-pointer whitespace-nowrap"
-              onClick={() => setActiveFilter(filter)}
+
+        {/* Filter pills */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
+          {filters.map((f) => (
+            <button
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                activeFilter === f
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-muted-foreground shadow-sm"
+              }`}
             >
-              {filter}
-            </Badge>
+              {f}
+            </button>
           ))}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 space-y-3 pb-24">
+      {/* List */}
+      <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-2">
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground text-sm">暂无数据</div>
+          <div className="bg-card rounded-2xl shadow-sm flex flex-col items-center py-12">
+            <span className="text-3xl mb-2">👥</span>
+            <p className="text-sm text-muted-foreground">暂无学员数据</p>
+          </div>
         )}
-        {filtered.map((student) => {
-          const statusCfg = statusConfig[student.statusText] ?? { className: "bg-muted text-muted-foreground" }
-          return (
-            <div
-              key={student.id}
-              onClick={() => onNavigate({ type: "student-detail", studentId: student.id })}
-              className="rounded-xl bg-card border border-border p-4 active:scale-[0.98] transition-transform cursor-pointer shadow-sm"
-            >
-              <div className="flex items-center gap-3">
-                <Avatar className="h-11 w-11 shrink-0">
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold text-base">
+
+        {filtered.length > 0 && (
+          <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
+            {filtered.map((student, index) => (
+              <button
+                key={student.id}
+                onClick={() => onNavigate({ type: "student-detail", studentId: student.id })}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/50 transition-colors text-left ${
+                  index < filtered.length - 1 ? "border-b border-border" : ""
+                }`}
+              >
+                <Avatar className="h-10 w-10 shrink-0">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
                     {student.name.slice(0, 1)}
                   </AvatarFallback>
                 </Avatar>
+
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="font-medium text-foreground">{student.name}</span>
-                    <Badge className={`text-xs px-1.5 py-0 ${statusCfg.className}`}>
-                      {student.statusText}
-                    </Badge>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-foreground text-sm">{student.name}</span>
+                    <span className={`h-2 w-2 rounded-full shrink-0 ${statusDot[student.statusText] ?? "bg-gray-400"}`} />
                   </div>
-                  <p className="text-xs text-muted-foreground">{student.courseName}</p>
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-xs text-muted-foreground">
-                      剩余{" "}
-                      <span className={student.remainingSessions <= 3 ? "text-amber-600 font-medium" : "text-foreground font-medium"}>
-                        {student.remainingSessions}
-                      </span>{" "}
-                      节
-                    </span>
-                    <span className="text-xs text-muted-foreground">上次：{student.lastClassDaysAgo}</span>
-                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">{student.courseName}</p>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={(e) => { e.stopPropagation() }}
-                    className="p-2 rounded-lg bg-secondary hover:bg-primary/10 transition-colors"
-                  >
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation() }}
-                    className="p-2 rounded-lg bg-secondary hover:bg-primary/10 transition-colors"
-                  >
-                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                  </button>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+
+                <div className="text-right shrink-0">
+                  <p className={`text-sm font-bold ${student.remainingSessions <= 3 ? "text-amber-500" : "text-foreground"}`}>
+                    {student.remainingSessions}节
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">剩余</p>
                 </div>
-              </div>
-            </div>
-          )
-        })}
+
+                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 ml-1" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

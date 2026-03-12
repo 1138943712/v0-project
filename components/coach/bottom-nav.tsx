@@ -9,17 +9,17 @@ interface BottomNavProps {
 }
 
 const navItems = [
-  { id: "home",     label: "首页", icon: Home },
-  { id: "students", label: "学员", icon: Users },
-  { id: "calendar", label: "日历", icon: CalendarDays },
-  { id: "messages", label: "消息", icon: MessageCircle },
-  { id: "profile",  label: "我的", icon: User },
+  { id: "home",     label: "首页",   icon: Home },
+  { id: "students", label: "学员",   icon: Users },
+  { id: "calendar", label: "日历",   icon: CalendarDays },
+  { id: "messages", label: "消息",   icon: MessageCircle },
+  { id: "profile",  label: "我的",   icon: User },
 ]
 
-export function BottomNav({ activeTab, onTabChange, unreadMessages = 3 }: BottomNavProps) {
+export function BottomNav({ activeTab, onTabChange, unreadMessages = 0 }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border safe-area-inset-bottom">
-      <div className="max-w-md mx-auto flex items-center justify-around h-16 px-2">
+    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-card border-t border-border">
+      <div className="flex items-center justify-around h-[60px] px-2">
         {navItems.map((item) => {
           const isActive = activeTab === item.id
           const badge = item.id === "messages" ? unreadMessages : 0
@@ -27,23 +27,27 @@ export function BottomNav({ activeTab, onTabChange, unreadMessages = 3 }: Bottom
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className={`relative flex flex-col items-center justify-center w-16 h-full gap-1 transition-colors ${
-                isActive ? "text-primary" : "text-muted-foreground"
-              }`}
+              className="relative flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors"
             >
               <div className="relative">
-                <item.icon className={`h-5 w-5 ${isActive ? "stroke-[2.5px]" : ""}`} />
+                <item.icon
+                  className={`h-[22px] w-[22px] transition-colors ${
+                    isActive ? "text-primary stroke-[2.5]" : "text-muted-foreground stroke-[1.5]"
+                  }`}
+                />
                 {badge > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 flex items-center justify-center px-1 text-[10px] font-medium bg-destructive text-destructive-foreground rounded-full">
+                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-[16px] flex items-center justify-center px-1 text-[10px] font-bold bg-red-500 text-white rounded-full leading-none">
                     {badge}
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] ${isActive ? "font-medium" : ""}`}>
+              <span className={`text-[11px] leading-none transition-colors ${
+                isActive ? "text-primary font-semibold" : "text-muted-foreground"
+              }`}>
                 {item.label}
               </span>
               {isActive && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-[3px] bg-primary rounded-full" />
               )}
             </button>
           )

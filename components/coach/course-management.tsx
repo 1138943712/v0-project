@@ -1,9 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Users, Clock, Calendar, ChevronRight, MoreHorizontal } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Plus, Users, Clock, MapPin, ChevronRight } from "lucide-react"
 import { mockCourses } from "@/lib/mock-data"
 import type { Screen } from "@/lib/navigation"
 
@@ -12,13 +10,14 @@ interface CourseManagementProps {
 }
 
 const courseTypeMap: Record<number, string> = { 1: "团课", 2: "私教", 3: "训练营", 4: "活动" }
-const statusConfig: Record<string, { className: string }> = {
-  "进行中": { className: "bg-primary/10 text-primary" },
-  "招生中": { className: "bg-amber-500/10 text-amber-600" },
-  "已结束": { className: "bg-muted text-muted-foreground" },
-  "未开始": { className: "bg-sky-500/10 text-sky-600" },
+const filters = ["全部", "团课", "私教", "训练营", "招生中"]
+
+const statusStyle: Record<string, { dot: string; text: string }> = {
+  "进行中": { dot: "bg-green-500",  text: "text-green-600" },
+  "招生中": { dot: "bg-amber-500",  text: "text-amber-600" },
+  "已结束": { dot: "bg-gray-400",   text: "text-muted-foreground" },
+  "未开始": { dot: "bg-blue-500",   text: "text-blue-600" },
 }
-const filters = ["全部", "团课", "私教", "训练营", "招生中", "已结束"]
 
 export function CourseManagement({ onNavigate }: CourseManagementProps) {
   const [activeFilter, setActiveFilter] = useState("全部")
@@ -26,86 +25,84 @@ export function CourseManagement({ onNavigate }: CourseManagementProps) {
   const filtered = mockCourses.filter((c) => {
     if (activeFilter === "全部") return true
     if (activeFilter === "招生中") return c.statusText === "招生中"
-    if (activeFilter === "已结束") return c.statusText === "已结束"
     return courseTypeMap[c.courseType] === activeFilter
   })
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 pt-4 pb-3">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-foreground">课程管理</h2>
-          <Button size="sm" className="gap-1">
-            <Plus className="h-4 w-4" /> 新建课程
-          </Button>
+      {/* Top bar */}
+      <div className="px-4 pt-4 pb-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-foreground">课程管理</h2>
+          <button className="flex items-center gap-1 bg-primary text-primary-foreground rounded-full px-3 py-1.5 text-sm font-medium">
+            <Plus className="h-4 w-4" /> 新建
+          </button>
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {filters.map((filter) => (
-            <Badge
-              key={filter}
-              variant={activeFilter === filter ? "default" : "secondary"}
-              className="cursor-pointer whitespace-nowrap"
-              onClick={() => setActiveFilter(filter)}
+
+        {/* Filter pills */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
+          {filters.map((f) => (
+            <button
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                activeFilter === f
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-muted-foreground shadow-sm"
+              }`}
             >
-              {filter}
-            </Badge>
+              {f}
+            </button>
           ))}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 space-y-3 pb-24">
+      {/* List */}
+      <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-3">
         {filtered.map((course) => {
-          const statusCfg = statusConfig[course.statusText] ?? { className: "bg-muted text-muted-foreground" }
+          const stStyle = statusStyle[course.statusText] ?? statusStyle["已结束"]
           const progress = course.totalSessions > 0
-            ? Math.round((course.completedSessions / course.totalSessions) * 100)
-            : 0
+            ? Math.round((course.completedSessions / course.totalSessions) * 100) : 0
+
           return (
-            <div
+            <button
               key={course.id}
               onClick={() => onNavigate({ type: "course-detail", courseId: course.id })}
-              className="rounded-xl bg-card border border-border p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
+              className="w-full bg-card rounded-2xl shadow-sm p-4 text-left active:scale-[0.99] transition-transform"
             >
+              {/* Title row */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-medium text-foreground">{course.courseName}</h3>
-                    <Badge variant="secondary" className="text-xs">
+                    <span className="font-bold text-foreground text-sm">{course.courseName}</span>
+                    <span className="text-xs bg-secondary text-muted-foreground rounded-full px-2 py-0.5">
                       {courseTypeMap[course.courseType]}
-                    </Badge>
+                    </span>
                   </div>
-                  <p className="text-base font-semibold text-primary mt-1">
+                  <p className="text-lg font-bold text-primary mt-1">
                     ¥{course.price.toLocaleString()}
                     <span className="text-xs text-muted-foreground font-normal ml-1">/ 期</span>
                   </p>
                 </div>
-                <button
-                  onClick={(e) => e.stopPropagation()}
-                  className="p-1.5 rounded-lg hover:bg-secondary transition-colors ml-2"
-                >
-                  <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
-                </button>
-              </div>
-
-              <div className="space-y-1.5 mb-3">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Calendar className="h-3.5 w-3.5 shrink-0" />
-                  <span>{course.schedule}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5 shrink-0" />
-                  <span>{course.scheduleTime}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Users className="h-3.5 w-3.5 shrink-0" />
-                  <span>{course.enrollCount}/{course.capacity} 人已报名</span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className={`h-2 w-2 rounded-full ${stStyle.dot}`} />
+                  <span className={`text-xs font-medium ${stStyle.text}`}>{course.statusText}</span>
                 </div>
               </div>
 
+              {/* Info row */}
+              <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{course.scheduleTime}</span>
+                <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{course.location}</span>
+                <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{course.enrollCount}/{course.capacity}人</span>
+              </div>
+
+              {/* Progress */}
               {course.status === 1 && (
-                <div className="mb-3">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                    <span>课程进度</span>
-                    <span>{course.completedSessions}/{course.totalSessions} 课时</span>
+                <div>
+                  <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
+                    <span>课程进度 {course.completedSessions}/{course.totalSessions} 课时</span>
+                    <span>{progress}%</span>
                   </div>
                   <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
                     <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} />
@@ -113,13 +110,12 @@ export function CourseManagement({ onNavigate }: CourseManagementProps) {
                 </div>
               )}
 
-              <div className="flex items-center justify-between pt-3 border-t border-border">
-                <Badge className={statusCfg.className}>{course.statusText}</Badge>
-                <span className="flex items-center gap-1 text-xs text-primary">
+              <div className="flex justify-end mt-3">
+                <span className="flex items-center gap-0.5 text-xs text-primary font-medium">
                   查看详情 <ChevronRight className="h-3.5 w-3.5" />
                 </span>
               </div>
-            </div>
+            </button>
           )
         })}
       </div>

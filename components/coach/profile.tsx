@@ -1,12 +1,7 @@
 "use client"
 
-import {
-  Settings, ChevronRight, Award, FileText,
-  BarChart3, HelpCircle, LogOut, Bell, Shield,
-  ClipboardList, Star,
-} from "lucide-react"
+import { ChevronRight, ClipboardList, Award, FileText, Bell, Shield, HelpCircle, LogOut, Star, Settings } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { mockCoachProfile } from "@/lib/mock-data"
 import type { Screen } from "@/lib/navigation"
 
@@ -14,121 +9,138 @@ interface ProfileProps {
   onNavigate: (screen: Screen) => void
 }
 
-const coachTypeMap: Record<number, string> = { 1: "全职", 2: "兼职", 3: "外聘", 4: "临时" }
-
 export function Profile({ onNavigate }: ProfileProps) {
   const initials = mockCoachProfile.realName.slice(0, 1)
 
   const menuItems = [
-    { icon: BarChart3,    label: "数据统计",   description: "查看课程和学员数据", onPress: () => {} },
-    { icon: ClipboardList, label: "教学反馈",  description: "查看和填写教学反馈", badge: "2", onPress: () => onNavigate({ type: "teaching-feedback" }) },
-    { icon: Award,        label: "资质证书",   description: "管理您的教练资质",   onPress: () => {} },
-    { icon: FileText,     label: "合同管理",   description: "查看和管理合同",     onPress: () => {} },
-    { icon: Bell,         label: "消息设置",   description: "通知与提醒设置",     onPress: () => {} },
-    { icon: Shield,       label: "隐私设置",   description: "管理账户安全",       onPress: () => {} },
-    { icon: HelpCircle,   label: "帮助中心",   description: "常见问题与客服",     onPress: () => {} },
+    { icon: ClipboardList, label: "教学反馈",   badge: "2",  onPress: () => onNavigate({ type: "teaching-feedback" }) },
+    { icon: Award,         label: "资质证书",   badge: "",   onPress: () => {} },
+    { icon: FileText,      label: "合同管理",   badge: "",   onPress: () => {} },
+    { icon: Bell,          label: "消息设置",   badge: "",   onPress: () => {} },
+    { icon: Shield,        label: "隐私设置",   badge: "",   onPress: () => {} },
+    { icon: HelpCircle,    label: "帮助与反馈", badge: "",   onPress: () => {} },
   ]
 
   return (
-    <div className="flex flex-col h-full pb-24">
-      {/* Profile Header */}
-      <div className="bg-primary px-4 pt-12 pb-6">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-20 w-20 border-2 border-white/30">
-            <AvatarFallback className="bg-white/20 text-white text-2xl font-bold">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-white">{mockCoachProfile.realName}</h2>
-              <Badge className="bg-white/20 text-white border-0 text-xs">
-                {coachTypeMap[mockCoachProfile.coachType]}
-              </Badge>
-            </div>
-            <p className="text-sm text-white/80 mt-1">{mockCoachProfile.specialty}</p>
-            <div className="flex items-center gap-4 mt-2 text-sm">
-              <span className="text-white/70">
-                从业 <span className="text-white font-medium">{mockCoachProfile.experience}</span> 年
-              </span>
-              <span className="text-white/70">
-                完成 <span className="text-white font-medium">{mockCoachProfile.completedSessions}</span> 课时
-              </span>
-            </div>
-          </div>
-          <button className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
-            <Settings className="h-5 w-5 text-white" />
+    <div className="flex flex-col min-h-full pb-24 overflow-y-auto">
+      {/* Header bar */}
+      <div className="bg-card border-b border-border">
+        <div className="relative flex items-center h-14 px-4">
+          <h1 className="absolute inset-0 flex items-center justify-center text-base font-bold text-foreground pointer-events-none">个人中心</h1>
+          <button className="ml-auto h-9 w-9 flex items-center justify-center rounded-full hover:bg-secondary">
+            <Settings className="h-5 w-5 text-muted-foreground" />
           </button>
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="mx-4 -mt-4 rounded-xl bg-card border border-border shadow-sm p-4 grid grid-cols-3 gap-2">
-        <div className="text-center">
-          <p className="text-lg font-bold text-foreground">{mockCoachProfile.completedSessions}</p>
-          <p className="text-xs text-muted-foreground">完成课时</p>
-        </div>
-        <div className="text-center border-x border-border">
-          <div className="flex items-center justify-center gap-0.5">
-            <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-            <p className="text-lg font-bold text-foreground">{mockCoachProfile.rating}</p>
+      {/* Profile card */}
+      <div className="mx-4 mt-4 bg-card rounded-2xl shadow-sm p-4 flex items-center gap-4">
+        <Avatar className="h-16 w-16 shrink-0">
+          <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold text-foreground">{mockCoachProfile.realName}</h2>
+            <span className="text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5 font-medium">
+              {mockCoachProfile.coachTypeText}
+            </span>
           </div>
-          <p className="text-xs text-muted-foreground">综合评分</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{mockCoachProfile.specialty}</p>
+          <div className="flex items-center gap-1 mt-1">
+            <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+            <span className="text-sm font-bold text-foreground">{mockCoachProfile.rating}</span>
+            <span className="text-xs text-muted-foreground ml-2">教龄 {mockCoachProfile.experience} 年</span>
+          </div>
         </div>
-        <div className="text-center">
-          <p className="text-lg font-bold text-foreground">{mockCoachProfile.experience}年</p>
-          <p className="text-xs text-muted-foreground">从业年限</p>
+        <button className="shrink-0 text-xs text-muted-foreground bg-secondary rounded-full px-3 py-1.5">
+          编辑资料
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="mx-4 mt-3 bg-card rounded-2xl shadow-sm overflow-hidden">
+        <div className="grid grid-cols-4 divide-x divide-border">
+          {[
+            { label: "完成课时", value: mockCoachProfile.completedSessions },
+            { label: "教龄(年)",  value: mockCoachProfile.experience },
+            { label: "综合评分", value: mockCoachProfile.rating },
+            { label: "学员总数", value: 156 },
+          ].map((item) => (
+            <div key={item.label} className="flex flex-col items-center py-4">
+              <span className="text-lg font-bold text-foreground leading-none">{item.value}</span>
+              <span className="text-[10px] text-muted-foreground mt-1.5 text-center">{item.label}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Coach Info */}
-      <div className="mx-4 mt-4 rounded-xl bg-card border border-border shadow-sm p-4">
-        <h3 className="text-sm font-semibold text-foreground mb-2">教练简介</h3>
-        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
-          {mockCoachProfile.introduction}
-        </p>
-        <div className="mt-3 pt-3 border-t border-border">
-          <h3 className="text-sm font-semibold text-foreground mb-2">持有证书</h3>
-          <div className="flex flex-wrap gap-1.5">
-            {mockCoachProfile.certificate.split(",").map((cert) => (
-              <Badge key={cert} variant="secondary" className="text-xs">{cert}</Badge>
-            ))}
-          </div>
+      {/* Quick actions */}
+      <div className="mx-4 mt-3 bg-card rounded-2xl shadow-sm p-4">
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { label: "我的课程",   emoji: "📚" },
+            { label: "教学反馈",   emoji: "📝", badge: "2", onPress: () => onNavigate({ type: "teaching-feedback" }) },
+            { label: "资质证书",   emoji: "🏆" },
+            { label: "数据统计",   emoji: "📊" },
+          ].map((item) => (
+            <button
+              key={item.label}
+              onClick={item.onPress}
+              className="flex flex-col items-center gap-1.5 py-2 rounded-xl hover:bg-secondary transition-colors relative"
+            >
+              <span className="text-2xl leading-none">{item.emoji}</span>
+              <span className="text-xs text-foreground text-center leading-tight">{item.label}</span>
+              {item.badge && (
+                <span className="absolute top-1 right-2 h-4 min-w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Menu Items */}
-      <div className="mx-4 mt-4 rounded-xl bg-card border border-border shadow-sm overflow-hidden">
-        {menuItems.map((item, index) => (
+      {/* Intro */}
+      <div className="mx-4 mt-3 bg-card rounded-2xl shadow-sm p-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-bold text-foreground">个人资料</h3>
+          <button className="text-xs text-primary flex items-center gap-0.5">更多 <ChevronRight className="h-3.5 w-3.5" /></button>
+        </div>
+        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{mockCoachProfile.introduction}</p>
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {mockCoachProfile.certificate.split(",").map((c) => (
+            <span key={c} className="text-xs bg-secondary text-muted-foreground rounded-full px-2.5 py-1">{c}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* Menu list */}
+      <div className="mx-4 mt-3 bg-card rounded-2xl shadow-sm overflow-hidden">
+        {menuItems.map((item, i) => (
           <button
             key={item.label}
             onClick={item.onPress}
             className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/50 transition-colors ${
-              index < menuItems.length - 1 ? "border-b border-border" : ""
+              i < menuItems.length - 1 ? "border-b border-border" : ""
             }`}
           >
-            <div className="rounded-lg p-2 bg-primary/10 shrink-0">
-              <item.icon className="h-4 w-4 text-primary" />
-            </div>
-            <div className="flex-1 text-left min-w-0">
-              <p className="text-sm font-medium text-foreground">{item.label}</p>
-              <p className="text-xs text-muted-foreground truncate">{item.description}</p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {item.badge && (
-                <Badge className="bg-destructive text-destructive-foreground text-xs px-1.5 py-0">
-                  {item.badge}
-                </Badge>
-              )}
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
+            <item.icon className="h-5 w-5 text-muted-foreground shrink-0" />
+            <span className="flex-1 text-sm text-foreground text-left">{item.label}</span>
+            {item.badge && (
+              <span className="h-5 min-w-5 bg-red-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center px-1 mr-1">
+                {item.badge}
+              </span>
+            )}
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </button>
         ))}
       </div>
 
       {/* Logout */}
-      <div className="mx-4 mt-4 rounded-xl bg-card border border-border shadow-sm overflow-hidden">
-        <button className="w-full flex items-center justify-center gap-2 px-4 py-3.5 text-destructive hover:bg-destructive/5 transition-colors">
+      <div className="mx-4 mt-3 bg-card rounded-2xl shadow-sm overflow-hidden">
+        <button className="w-full flex items-center justify-center gap-2 py-4 text-red-500 hover:bg-red-50 transition-colors">
           <LogOut className="h-4 w-4" />
           <span className="text-sm font-medium">退出登录</span>
         </button>
