@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, MessageCircle, Calendar, AlertCircle, FileText, ChevronRight, CheckCheck } from "lucide-react"
+import { Bell, MessageCircle, Calendar, AlertCircle, FileText, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { mockMessages } from "@/lib/mock-data"
 import type { Screen } from "@/lib/navigation"
@@ -43,9 +43,6 @@ export function MessageCenter({ onNavigate }: MessageCenterProps) {
               )}
             </button>
           ))}
-          <button className="ml-auto flex items-center gap-1 text-xs text-primary">
-            <CheckCheck className="h-3.5 w-3.5" /> 全部已读
-          </button>
         </div>
       </div>
 

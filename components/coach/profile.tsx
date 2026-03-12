@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronRight, ClipboardList, Award, FileText, Bell, Shield, HelpCircle, LogOut, Star, Settings } from "lucide-react"
+import { ChevronRight, ClipboardList, Bell, HelpCircle, LogOut, Star } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { mockCoachProfile } from "@/lib/mock-data"
 import type { Screen } from "@/lib/navigation"
@@ -14,10 +14,7 @@ export function Profile({ onNavigate }: ProfileProps) {
 
   const menuItems = [
     { icon: ClipboardList, label: "教学反馈",   badge: "2",  onPress: () => onNavigate({ type: "teaching-feedback" }) },
-    { icon: Award,         label: "资质证书",   badge: "",   onPress: () => {} },
-    { icon: FileText,      label: "合同管理",   badge: "",   onPress: () => {} },
     { icon: Bell,          label: "消息设置",   badge: "",   onPress: () => {} },
-    { icon: Shield,        label: "隐私设置",   badge: "",   onPress: () => {} },
     { icon: HelpCircle,    label: "帮助与反馈", badge: "",   onPress: () => {} },
   ]
 
@@ -25,11 +22,8 @@ export function Profile({ onNavigate }: ProfileProps) {
     <div className="flex flex-col min-h-full pb-24 overflow-y-auto">
       {/* Header bar */}
       <div className="bg-card border-b border-border">
-        <div className="relative flex items-center h-14 px-4">
-          <h1 className="absolute inset-0 flex items-center justify-center text-base font-bold text-foreground pointer-events-none">个人中心</h1>
-          <button className="ml-auto h-9 w-9 flex items-center justify-center rounded-full hover:bg-secondary">
-            <Settings className="h-5 w-5 text-muted-foreground" />
-          </button>
+        <div className="flex items-center justify-center h-14 px-4">
+          <h1 className="text-base font-bold text-foreground">个人中心</h1>
         </div>
       </div>
 
@@ -78,12 +72,11 @@ export function Profile({ onNavigate }: ProfileProps) {
 
       {/* Quick actions */}
       <div className="mx-4 mt-3 bg-card rounded-2xl shadow-sm p-4">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {[
-            { label: "我的课程",   emoji: "📚" },
-            { label: "教学反馈",   emoji: "📝", badge: "2", onPress: () => onNavigate({ type: "teaching-feedback" }) },
-            { label: "资质证书",   emoji: "🏆" },
-            { label: "数据统计",   emoji: "📊" },
+            { label: "教学反馈", emoji: "📝", badge: "2", onPress: () => onNavigate({ type: "teaching-feedback" }) },
+            { label: "消息设置", emoji: "🔔", onPress: () => {} },
+            { label: "帮助反馈", emoji: "💬", onPress: () => {} },
           ].map((item) => (
             <button
               key={item.label}

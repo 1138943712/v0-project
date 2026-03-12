@@ -161,10 +161,10 @@ export function CourseCalendar({ onNavigate }: CourseCalendarProps) {
             {dayCourses.map((course, index) => {
               const st = statusStyle[course.status] ?? statusStyle[0]
               return (
-                <button
+                <div
                   key={course.id}
                   onClick={() => onNavigate({ type: "session-detail", sessionId: course.id })}
-                  className={`w-full flex items-center gap-3 px-4 py-4 hover:bg-secondary/50 transition-colors text-left ${
+                  className={`w-full flex items-center gap-3 px-4 py-4 hover:bg-secondary/50 transition-colors cursor-pointer ${
                     index < dayCourses.length - 1 ? "border-b border-border" : ""
                   }`}
                 >
@@ -193,7 +193,7 @@ export function CourseCalendar({ onNavigate }: CourseCalendarProps) {
                     </div>
                   </div>
 
-                  {/* Action buttons */}
+                  {/* Action button */}
                   <div className="flex flex-col gap-1.5 shrink-0">
                     <button
                       onClick={(e) => { e.stopPropagation(); onNavigate({ type: "attendance", sessionId: course.id }) }}
@@ -206,7 +206,7 @@ export function CourseCalendar({ onNavigate }: CourseCalendarProps) {
                       {course.status === 3 ? "已结束" : "签到"}
                     </button>
                   </div>
-                </button>
+                </div>
               )
             })}
           </div>

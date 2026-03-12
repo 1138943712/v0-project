@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, QrCode } from "lucide-react"
+import { Bell } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { mockCoachProfile } from "@/lib/mock-data"
 
@@ -41,9 +41,6 @@ export function Header({ title = "工作台", unreadCount = 0 }: HeaderProps) {
                 {unreadCount}
               </span>
             )}
-          </button>
-          <button className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-secondary transition-colors">
-            <QrCode className="h-5 w-5 text-muted-foreground" />
           </button>
         </div>
       </div>
