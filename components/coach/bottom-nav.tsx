@@ -1,20 +1,23 @@
 "use client"
 
-import { Home, Users, CalendarDays, User } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Home, Users, CalendarDays, MessageSquare, User } from "lucide-react"
 
 interface BottomNavProps {
   activeTab: string
-  onTabChange: (tab: string) => void
 }
 
 const navItems = [
   { id: "home",     label: "首页", icon: Home },
   { id: "students", label: "学员", icon: Users },
   { id: "calendar", label: "日历", icon: CalendarDays },
+  { id: "messages", label: "消息", icon: MessageSquare },
   { id: "profile",  label: "我的", icon: User },
 ]
 
-export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
+export function BottomNav({ activeTab }: BottomNavProps) {
+  const router = useRouter()
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-card border-t border-border">
       <div className="flex items-center justify-around h-[60px] px-2">
@@ -23,7 +26,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
           return (
             <button
               key={item.id}
-              onClick={() => onTabChange(item.id)}
+              onClick={() => router.push(`/${item.id}`)}
               className="relative flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors"
             >
               <item.icon
