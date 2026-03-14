@@ -12,9 +12,12 @@ import { HomeStats } from "@/components/coach/home-stats"
 import { TodaySchedule } from "@/components/coach/today-schedule"
 import { StudentList } from "@/components/coach/student-list"
 import { CourseCalendar } from "@/components/coach/course-calendar"
-import { CourseManagement } from "@/components/coach/course-management"
-import { MessageCenter } from "@/components/coach/message-center"
 import { Profile } from "@/components/coach/profile"
+
+// Home components
+import { GymBanner } from "@/components/coach/gym-banner"
+import { GymCard } from "@/components/coach/gym-card"
+import type { Dept } from "@/lib/api"
 
 // Detail pages
 import { CourseDetail } from "@/components/coach/course-detail"
@@ -24,22 +27,18 @@ import { Attendance } from "@/components/coach/attendance"
 import { TeachingFeedback } from "@/components/coach/teaching-feedback"
 import { MessageDetail } from "@/components/coach/message-detail"
 
-import { mockMessages } from "@/lib/mock-data"
-
 const tabTitles: Record<string, string> = {
   home:     "工作台",
   students: "学员管理",
   calendar: "课程日历",
-  messages: "消息中心",
   profile:  "个人中心",
 }
 
 export default function CoachApp() {
   const [activeTab, setActiveTab] = useState("home")
-  // Navigation stack: array of screens, last one is current
   const [screenStack, setScreenStack] = useState<Screen[]>([])
+  const [bannerList, setBannerList] = useState<string[]>([])
 
-  const unreadMessages = mockMessages.filter((m) => m.unread).length
   const currentScreen = screenStack[screenStack.length - 1] ?? null
 
   const navigate = useCallback((screen: Screen) => {
@@ -49,6 +48,10 @@ export default function CoachApp() {
   const goBack = useCallback(() => {
     setScreenStack((prev) => prev.slice(0, -1))
   }, [])
+
+  const handleDeptDetail = (dept: Dept) => {
+    setBannerList(dept.imageUrl ? dept.imageUrl.split(",") : [])
+  }
 
   // ——— Render detail screen ———
   if (currentScreen) {
@@ -120,12 +123,14 @@ export default function CoachApp() {
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto relative">
       {activeTab !== "profile" && (
-        <Header title={tabTitles[activeTab]} unreadCount={unreadMessages} />
+        <Header title={tabTitles[activeTab]} />
       )}
 
       <main className="flex-1">
         {activeTab === "home" && (
-          <div className="px-4 py-4 pb-24 space-y-6">
+          <div className="px-4 py-4 pb-24 space-y-4">
+            <GymBanner list={bannerList} />
+            <GymCard onDeptDetail={handleDeptDetail} />
             <HomeStats />
             <TodaySchedule onNavigate={navigate} />
           </div>
@@ -136,9 +141,6 @@ export default function CoachApp() {
         {activeTab === "calendar" && (
           <CourseCalendar onNavigate={navigate} />
         )}
-        {activeTab === "messages" && (
-          <MessageCenter onNavigate={navigate} />
-        )}
         {activeTab === "profile" && (
           <Profile onNavigate={navigate} />
         )}
@@ -147,7 +149,6 @@ export default function CoachApp() {
       <BottomNav
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        unreadMessages={unreadMessages}
       />
     </div>
   )

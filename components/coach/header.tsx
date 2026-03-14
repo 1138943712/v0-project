@@ -6,10 +6,10 @@ import { mockCoachProfile } from "@/lib/mock-data"
 
 interface HeaderProps {
   title?: string
-  unreadCount?: number
 }
 
-export function Header({ title = "工作台", unreadCount = 0 }: HeaderProps) {
+export function Header({ title = "工作台" }: HeaderProps) {
+  const unreadCount = 0
   const initials = mockCoachProfile.realName.slice(0, 1)
   const hour = new Date().getHours()
   const greeting = hour < 12 ? "早上好" : hour < 18 ? "下午好" : "晚上好"
