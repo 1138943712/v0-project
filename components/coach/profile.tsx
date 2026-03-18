@@ -1,15 +1,17 @@
 "use client"
 
-import { ChevronRight, ClipboardList, Bell, HelpCircle, LogOut, Star } from "lucide-react"
+import { ChevronRight, ClipboardList, Bell, HelpCircle, LogOut, Star, ArrowLeftRight } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { mockCoachProfile } from "@/lib/mock-data"
 import type { Screen } from "@/lib/navigation"
+import { useRouter } from "next/navigation"
 
 interface ProfileProps {
   onNavigate: (screen: Screen) => void
 }
 
 export function Profile({ onNavigate }: ProfileProps) {
+  const router = useRouter()
   const initials = mockCoachProfile.realName.slice(0, 1)
 
   const menuItems = [
@@ -131,12 +133,23 @@ export function Profile({ onNavigate }: ProfileProps) {
         ))}
       </div>
 
-      {/* Logout */}
-      <div className="mx-4 mt-3 bg-card rounded-2xl shadow-sm overflow-hidden">
-        <button className="w-full flex items-center justify-center gap-2 py-4 text-red-500 hover:bg-red-50 transition-colors">
-          <LogOut className="h-4 w-4" />
-          <span className="text-sm font-medium">退出登录</span>
-        </button>
+      {/* Switch role + Logout */}
+      <div className="mx-4 mt-3 space-y-2">
+        <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
+          <button
+            onClick={() => router.push("/")}
+            className="w-full flex items-center justify-center gap-2 py-4 text-muted-foreground hover:bg-secondary transition-colors"
+          >
+            <ArrowLeftRight className="h-4 w-4" />
+            <span className="text-sm font-medium">切换身份</span>
+          </button>
+        </div>
+        <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
+          <button className="w-full flex items-center justify-center gap-2 py-4 text-red-500 hover:bg-red-50 transition-colors">
+            <LogOut className="h-4 w-4" />
+            <span className="text-sm font-medium">退出登录</span>
+          </button>
+        </div>
       </div>
     </div>
   )

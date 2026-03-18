@@ -4,7 +4,9 @@
       "Bash(head:*)",
       "Bash(npx tsc:*)",
       "Bash(git rm:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(cd:*)",
+      "Bash(python:*)"
     ]
   }
 }
